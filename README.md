@@ -3,10 +3,33 @@
 ## Table of Contents
 1. [Syntax and Semantics](#syntax-and-semantics)
 2. [Variables and Scoping](#variables-and-scoping)
+   - [Variables](#variables)
+   - [Scoping](#scoping)
+   - [Global vs Local vs Block Scope](#global-vs-local-vs-block-scope)
+   - [Scope Chain](#scope-chain)
+   - [Shadowing](#shadowing)
+   - [Lexical Scoping](#lexical-scoping)
+   - [Scoping Best Practices](#scoping-best-practices)
 3. [Type Systems](#type-systems)
+   - [Static vs Dynamic Typing](#static-vs-dynamic-typing)
+   - [Type Inference](#type-inference)
 4. [Object-Oriented Programming](#object-oriented-programming)
+   - [Classes and Objects](#classes-objects)
+   - [Inheritance](#inheritance)
+   - [Types of Inheritance](#types-of-inheritance)
+   - [Encapsulation](#encapsulation)
+   - [Polymorphism](#polymorphism)
 5. [Functional Programming](#functional-programming)
+   - [Pure Functions, Referential Transparency, and Immutability](#pure-functions-referential-transparency-and-immutability)
+   - [Higher-Order Functions](#higher-order-functions)
+   - [Anonymous Functions and Lambda Expressions](#anonymous-functions-lambda-expressions)
+   - [Function Transformations](#function-transformations)
+     - [Currying](#currying)
+     - [Partial Application](#partial-application)
+     - [Composition](#composition)
 6. [OOP vs Functional Programming](#oop-vs-functional-programming)
+   - [Key Differences](#key-differences)
+   - [When to Use Each Paradigm](#when-to-use-each-paradigm)
 
 ## Syntax and Semantics
 
@@ -707,11 +730,167 @@ const add = (a: number, b: number) => a + b;
 add = lambda a, b: a + b
 ```
 
-### Currying
+### Function Transformations
+Function transformations are techniques for manipulating and working with functions to create more specialized or complex behavior. These techniques are fundamental to functional programming and enable code reuse, composition, and abstraction.
 
-### Partial Application
+#### Currying
+Transforming a function that takes multiple arguments into a sequence of functions that each take a single argument. This technique allows for creating specialized functions from more general ones.
 
-### Composition
+```typescript
+// Normal function with multiple arguments
+function add(a: number, b: number): number {
+    return a + b;
+}
+
+// Curried version
+function curriedAdd(a: number): (b: number) => number {
+    return function(b: number): number {
+        return a + b;
+    };
+}
+
+// Using the curried function
+const add5 = curriedAdd(5); // Creates a function that adds 5 to its argument
+console.log(add5(3)); // 8
+console.log(add5(10)); // 15
+
+// Alternative syntax with arrow functions
+const curriedMultiply = (a: number) => (b: number) => a * b;
+const double = curriedMultiply(2);
+const triple = curriedMultiply(3);
+
+console.log(double(4)); // 8
+console.log(triple(4)); // 12
+
+// Example with more parameters
+const fullName = (firstName: string) => (middleName: string) => (lastName: string) => 
+    `${firstName} ${middleName} ${lastName}`;
+
+const johnWith = fullName("John");
+const johnDoeWith = johnWith("Doe");
+console.log(johnDoeWith("Smith")); // "John Doe Smith"
+```
+
+**Benefits of Currying:**
+- ✅ Creates specialized functions from general ones
+- ✅ Avoids repetition of arguments
+- ✅ Enables function composition
+- ✅ Supports partial application
+
+#### Partial Application
+Fixing a number of arguments to a function, producing another function of smaller arity. Unlike currying (which always reduces to one argument), partial application can fix any number of arguments.
+
+```typescript
+// Regular function
+function greet(greeting: string, name: string, suffix: string): string {
+    return `${greeting}, ${name}${suffix}`;
+}
+
+// Partial application using bind
+const greetWithHello = greet.bind(null, "Hello");
+console.log(greetWithHello("John", "!")); // "Hello, John!"
+
+// Implementing our own partial application
+function partial<T extends any[], R>(
+    fn: (...args: T) => R, 
+    ...fixedArgs: Partial<T>
+): (...remainingArgs: any[]) => R {
+    return function(...remainingArgs: any[]): R {
+        return fn(...[...fixedArgs, ...remainingArgs] as T);
+    };
+}
+
+// Using our partial function
+const greetWithHi = partial(greet, "Hi");
+const greetJaneWithHi = partial(greet, "Hi", "Jane");
+console.log(greetWithHi("Alice", ".")); // "Hi, Alice."
+console.log(greetJaneWithHi("!")); // "Hi, Jane!"
+
+// Practical example: Configuring HTTP requests
+const fetchFromAPI = (baseURL: string, endpoint: string, params: object) => {
+    const url = `${baseURL}${endpoint}?${new URLSearchParams(params as any)}`;
+    return fetch(url).then(res => res.json());
+};
+
+// Create a specialized function for a specific API
+const fetchFromUsers = partial(fetchFromAPI, "https://api.example.com", "/users");
+// Later use it with just the params
+fetchFromUsers({ id: 123 }); // Fetches from https://api.example.com/users?id=123
+```
+
+#### Composition
+Combining two or more functions to create a new function. The output of one function becomes the input of the next function, allowing complex operations to be built from simpler ones.
+
+```typescript
+// Simple functions to compose
+const double = (x: number) => x * 2;
+const increment = (x: number) => x + 1;
+const square = (x: number) => x * x;
+
+// Manual composition
+const manualCompose = (x: number) => square(increment(double(x)));
+console.log(manualCompose(3)); // (3*2+1)² = (6+1)² = 7² = 49
+
+// Creating a compose function (right to left)
+function compose<T>(...fns: Array<(arg: T) => T>): (arg: T) => T {
+    return (value: T) => fns.reduceRight((acc, fn) => fn(acc), value);
+}
+
+// Creating a pipe function (left to right, more readable order)
+function pipe<T>(...fns: Array<(arg: T) => T>): (arg: T) => T {
+    return (value: T) => fns.reduce((acc, fn) => fn(acc), value);
+}
+
+// Using compose (functions applied from right to left)
+const composedFunction = compose(square, increment, double);
+console.log(composedFunction(3)); // 49
+
+// Using pipe (more intuitive, left to right)
+const pipedFunction = pipe(double, increment, square);
+console.log(pipedFunction(3)); // 49
+
+// Real-world example: Processing user data
+interface User {
+    name: string;
+    age: number;
+}
+
+const filterAdults = (users: User[]): User[] => users.filter(user => user.age >= 18);
+const sortByName = (users: User[]): User[] => [...users].sort((a, b) => a.name.localeCompare(b.name));
+const formatNames = (users: User[]): string[] => users.map(user => user.name.toUpperCase());
+
+// Composed processing function
+const processUsers = pipe(filterAdults, sortByName, formatNames);
+
+const users = [
+    { name: "alice", age: 25 },
+    { name: "bob", age: 17 },
+    { name: "charlie", age: 30 },
+    { name: "dave", age: 14 }
+];
+
+console.log(processUsers(users)); // ["ALICE", "CHARLIE"]
+```
+
+**Benefits of Composition:**
+- ✅ Creates complex behavior from simple functions
+- ✅ Promotes reusability and modularity
+- ✅ Makes code more declarative and readable
+- ✅ Reduces repetition and enables point-free style programming
+
+**Point-free Style:**
+Function composition often enables point-free style (tacit programming), where function definitions don't explicitly identify the arguments.
+
+```typescript
+// With explicit arguments
+const getNames = (users: User[]): string[] => {
+    return users.map(user => user.name);
+};
+
+// Point-free style
+const getName = (user: User): string => user.name;
+const getNames = users.map(getName);
+```
 
 ## OOP vs Functional Programming
 
