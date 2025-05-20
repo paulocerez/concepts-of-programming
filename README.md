@@ -4,8 +4,8 @@
 1. [Syntax and Semantics](#syntax-and-semantics)
 2. [Variables and Scoping](#variables-and-scoping)
 3. [Type Systems](#type-systems)
-4. [Object-Oriented Programming Concepts](#object-oriented-programming-concepts)
-5. [Functional Programming Concepts](#functional-programming-concepts)
+4. [Object-Oriented Programming](#object-oriented-programming)
+5. [Functional Programming](#functional-programming)
 6. [OOP vs Functional Programming](#oop-vs-functional-programming)
 
 ## Syntax and Semantics
