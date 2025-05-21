@@ -64,20 +64,21 @@ if (x > 0) {
 A named location (container) in memory that stores data. How variables are declared, initialized, and accessed varies by language.
 
 ```typescript
-var x = 10 // Function scoped, can be redeclared in the same scope
-let x = 10 // Block scoped, cannot be redeclared in the same scope
-const x = 10 // Block scoped, cannot be reassigned in the same scope
+// JavaScript
+let x = 10 // mutable
+const x = 10 // immutable
+
+// Python
+x = 10 // just assigned
+
+// Java
+int x = 10; // initialized and declared at the same time
 ```
 
 
 ### Scoping
 The region of code (context) where a variable is declared and accessible. This dictates the visibility and lifetime of the variable and therefore affects code behavior and interactions.
 
-```typescript
-function add(a, b) {
-    return a + b
-}
-```
 #### Global vs Local vs Block Scope
 
 - Global: Variables declared outside of any function or block, accessible everywhere. Prone to conflicts, less modular and organized.
@@ -113,7 +114,7 @@ console.log(count); // 1 (global variable is accessible)
 ```
 
 ### Scope Chain
-The top-down order in which variables are searched for in a nested scope by the compiler.
+The top-down order (linked-list) in which variables are searched for in a nested scope by the compiler. Hierarchical structure of scopes that determines variable lookup during code execution
 
 ```typescript
 let greeting = "Hello World"; // Global
@@ -134,32 +135,8 @@ function outer() {
 outer();
 ```
 
-#### Shadowing
-When a variable in a nested scope has the same name as a variable in an outer scope, hiding the outer variable.
-
-```typescript
-let value = 10; // Global value
-
-function calculate() {
-    let value = 20; // shadowing global value
-    
-    console.log(value); // 20 - referring to local value
-    
-    function inner() {
-        let value = 30; // shadowing both outer values
-        console.log(value); // 30 - referring to inner value
-    }
-    
-    inner();
-    console.log(value); // 20 - referring to local value
-}
-
-calculate();
-console.log(value); // 10 - refers to global value
-```
-
-#### Lexical Scoping
-Variable access is determined by the physical location in the source code (where variables are defined).
+#### Lexical (Static) Scoping
+Variable access is determined by the physical location in the source code (where variable is defined).
 
 ```typescript
 function createCounter() {
@@ -177,15 +154,38 @@ console.log(counter()); // 2
 console.log(counter()); // 3
 ```
 
+#### Dynamic Scoping
+Variable access is determined by the runtime context (where the function is called from). Variable resolution follows the call stack rather than the lexical structure.
+
+```bash
+# Bash
+
+x=1
+
+function print_x {
+  echo $x
+}
+
+function example {
+  local x=2
+  print_x  # Will print 2, not 1
+}
+
+```
+
+
 ### Closures
 Bundles a function and the environment in which it was created (the variables it needs to access). Intersection of function scope and the scope chain.
 
 ```typescript
-function createCounter(x) {
-    return function(y) {
-        return x + y
+function init() {
+    let name = "Mozilla";
+    function displayName() {
+        console.log(name);
     }
+    displayName();
 }
+init(); // Output: Mozilla
 ```
 
 Benefits:
@@ -196,7 +196,6 @@ Benefits:
 
 ### Scoping Best Practices
 - Use block scope for variables that need to be accessed within a specific block
-- Use lexical scoping to avoid variable conflicts
 - Use closures to manage state and behavior
 - Use descriptive variable names
 - Limit the use of global variables
@@ -222,6 +221,12 @@ let num: number = 42;
 num = "string"; // Error: Type 'string' is not assignable to type 'number'
 ```
 
+```java
+// Java
+int num = 42;
+num = "string"; // Error: Type 'string' is not assignable to type 'int'
+```
+
 #### Dynamic Typing
 Type checking is performed at runtime, after the program is executed.
 
@@ -232,28 +237,27 @@ x = "Hello"; // No error, x is now a string
 console.log(x + 5); // Outputs: "Hello5" (string concatenation)
 ```
 
-#### Advantages and Disadvantages
+```python
+# Python
+x = 10
+x = "Hello" # no error, x is now a string
+print(x + 5) # Outputs: "Hello5" (string concatenation)
+```
 
-**Static Typing:**
+#### Comparison
 
-- ✅ Early error detection
-- ✅ Better performance (typically)
-- ✅ Better IDE support and tooling
-- ❌ Less flexibility
-- ❌ More verbose code
-- ❌ Longer compile times
-- ❌ More difficult to support certain programming patterns
-
-**Dynamic Typing:**
-
-- ✅ Faster development for small projects
-- ✅ More flexibility and expressiveness
-- ✅ Less boilerplate code
-- ✅ Better support for dynamic loading and metaprogramming
-- ❌ Runtime errors can occur
-- ❌ Type-related bugs may reach production
-- ❌ Can be slower at runtime
-- ❌ Less effective IDE support
+| Aspect | Static Typing | Dynamic Typing |
+|--------|--------------|----------------|
+| Error Detection | ✅ Early (compile-time) | ❌ Late (runtime) |
+| Performance | ✅ Generally better | ❌ Can be slower |
+| IDE Support | ✅ Rich (autocomplete, refactoring) | ❌ Limited |
+| Development Speed | ❌ Slower initial development | ✅ Faster for small projects |
+| Flexibility | ❌ Less flexible | ✅ More flexible and expressive |
+| Code Verbosity | ❌ More verbose | ✅ Less boilerplate |
+| Metaprogramming | ❌ More difficult | ✅ Better support |
+| Runtime Safety | ✅ More type safety | ❌ Type-related bugs in production |
+| Compile Time | ❌ Longer compilation | ✅ No compilation step |
+| Examples | Java, C++, TypeScript, Rust | JavaScript, Python, Ruby, PHP |
 
 ### Type Inference
 Type inference is the ability of a compiler to automatically deduce the type of a variable based on its usage and initialization value, without requiring explicit type annotations.
@@ -365,7 +369,7 @@ console.log(bob.department);   // Sales
 - **Single Inheritance**: A class inherits from only one parent class. Most common in languages like Java, C#, and TypeScript.
   ```typescript
   class Animal { }
-  class Dog extends Animal { } // Dog inherits only from Animal
+  class Dog extends Animal { }
   ```
 
 - **Multiple Inheritance**: A class inherits from multiple parent classes simultaneously. Supported in C++, Python.
@@ -373,7 +377,7 @@ console.log(bob.department);   // Sales
   // C++ example
   class Vehicle { };
   class FlyingObject { };
-  class FlyingCar : public Vehicle, public FlyingObject { }; // Inherits from both
+  class FlyingCar : public Vehicle, public FlyingObject { };
   ```
 
 - **Interface Inheritance**: A class implements one or more interfaces, which define a contract of methods/properties the class must provide.
@@ -606,6 +610,57 @@ shapes.forEach(shape => {
 printShapeInfo(circle); // Accesses both Shape and Circle-specific methods
 ```
 
+#### Dynamic Dispatch, Late Binding
+
+**Dynamic Dispatch**: The process of determining which implementation of a method to call at runtime rather than compile time. When a method is called on an object, the runtime system determines the actual type of the object and invokes the appropriate method implementation.
+
+```typescript
+// The actual implementation called depends on the runtime type
+function calculateAndPrint(shape: Shape): void {
+    // Dynamic dispatch happens here - the runtime determines 
+    // which calculateArea() method to call based on the actual object type
+    const area = shape.calculateArea();
+    console.log(`The area is ${area}`);
+}
+
+calculateAndPrint(new Circle(5));    // Calls Circle's calculateArea()
+calculateAndPrint(new Rectangle(4, 3)); // Calls Rectangle's calculateArea()
+```
+
+**Late Binding (or Dynamic Binding)**: The binding of a method call to its implementation occurs at runtime based on the actual object type, not the reference type. This contrasts with early (static) binding, where method calls are resolved at compile time.
+
+```typescript
+class Animal {
+    makeSound(): string {
+        return "Some generic sound";
+    }
+}
+
+class Dog extends Animal {
+    makeSound(): string {
+        return "Woof!";
+    }
+}
+
+class Cat extends Animal {
+    makeSound(): string {
+        return "Meow!";
+    }
+}
+
+// Late binding example
+const animals: Animal[] = [new Dog(), new Cat(), new Animal()];
+
+animals.forEach(animal => {
+    // The binding of which makeSound() to call happens at runtime
+    console.log(animal.makeSound());
+});
+// Outputs:
+// Woof!
+// Meow!
+// Some generic sound
+```
+
 ## Functional Programming
 Programming paradigm where programs are constructed by applying and composing mathematical functions. Focus lies on what to solve, not how to solve it. 
 
@@ -627,22 +682,21 @@ Programming paradigm where programs are constructed by applying and composing ma
 - ***Immutability***: Objects are immutable, meaning their state cannot be changed once created.
 
     ```typescript
-    // Immutable data example
-    // Instead of modifying objects directly, create new ones with the desired changes
+    // Creation of new objects with the desired changes instead of modification
     
     // Original objects
     const user = { name: "Alice", age: 30, settings: { theme: "light", notifications: true } };
     const numbers = [1, 2, 3, 4, 5];
     
-    // ❌ Mutable approach (avoid in functional programming)
+    // ❌ Mutable approach
     function incrementAgeMutable(user) {
-        user.age += 1; // Directly modifies the input object
+        user.age += 1;
         return user;
     }
     
     // ✅ Immutable approach 
     function incrementAge(user) {
-        return { ...user, age: user.age + 1 }; // Returns a new object without modifying original
+        return { ...user, age: user.age + 1 }; // Returns a new object
     }
     
     // For nested objects, create new copies at each level
@@ -661,16 +715,9 @@ Programming paradigm where programs are constructed by applying and composing ma
     const removeNumber = (arr, index) => [...arr.slice(0, index), ...arr.slice(index + 1)];
     const updateNumber = (arr, index, newValue) => [...arr.slice(0, index), newValue, ...arr.slice(index + 1)];
     
-    // Immutable operations in action
     const updatedUser = incrementAge(user);
     const userWithNewTheme = updateTheme(user, "dark");
     const extendedNumbers = addNumber(numbers, 6);
-    
-    console.log(user); // Original unchanged: { name: "Alice", age: 30, settings: { theme: "light", ... } }
-    console.log(updatedUser); // New object: { name: "Alice", age: 31, settings: { theme: "light", ... } }
-    console.log(userWithNewTheme); // { name: "Alice", age: 30, settings: { theme: "dark", ... } }
-    console.log(numbers); // Original unchanged: [1, 2, 3, 4, 5]
-    console.log(extendedNumbers); // New array: [1, 2, 3, 4, 5, 6]
     ```
 
     **Benefits**
@@ -686,7 +733,7 @@ Programming paradigm where programs are constructed by applying and composing ma
     - ❌ More memory usage due to immutability
 
 ### Higher-Order Functions
-Functions that take other functions as arguments or return functions as results, enabling code composition and abstraction
+Functions that take other functions as arguments or return functions as results, enabling code composition and abstraction.
 
 ```typescript
 function processArray(arr: number[], callback: (num: number) => number): number[] {
@@ -707,6 +754,29 @@ const even = numbers.filter(x => x % 2 === 0); // [2, 4]
 const sum = numbers.reduce((acc, x) => acc + x, 0); // 15
 ```
 
+```typescript
+function applyNTimes<T>(fn: (x: T) => T, n: number): (x: T) => T {
+    return function(x: T): T {
+        if (n <= 0) return x;
+        
+        let result = x;
+        for (let i = 0; i < n; i++) {
+            result = fn(result);
+        }
+        return result;
+    };
+}
+
+const double = (x: number) => x * 2;
+const triple = (x: number) => x * 3;
+
+const doubleTwice = applyNTimes(double, 2); 
+const tripleThrice = applyNTimes(triple, 3); 
+
+console.log(doubleTwice(3));  // 3 → 6 → 12
+console.log(tripleThrice(2)); // 2 → 6 → 18 → 54
+```
+
 **Benefits**
 - ✅ Encourages code reuse and composition
 - ✅ Leads to more declarative programming style
@@ -720,7 +790,7 @@ const sum = numbers.reduce((acc, x) => acc + x, 0); // 15
 - ❌ Can make stack traces harder to understand
 
 ### Anonymous Functions, Lambda Expressions
-Functions without explicit names that can be passed as arguments, stored in variables, and returned from other functions -> Lambda Expressions  as concise syntax for writing anonymous functions, often used for short, one-off operations
+Functions without explicit names that can be passed as arguments, stored in variables, and returned from other functions -> Lambda Expressions  as concise syntax for writing anonymous functions, often used for short, one-off operations.
 
 ```typescript
 const add = (a: number, b: number) => a + b;
@@ -749,26 +819,9 @@ function curriedAdd(a: number): (b: number) => number {
     };
 }
 
-// Using the curried function
 const add5 = curriedAdd(5); // Creates a function that adds 5 to its argument
 console.log(add5(3)); // 8
 console.log(add5(10)); // 15
-
-// Alternative syntax with arrow functions
-const curriedMultiply = (a: number) => (b: number) => a * b;
-const double = curriedMultiply(2);
-const triple = curriedMultiply(3);
-
-console.log(double(4)); // 8
-console.log(triple(4)); // 12
-
-// Example with more parameters
-const fullName = (firstName: string) => (middleName: string) => (lastName: string) => 
-    `${firstName} ${middleName} ${lastName}`;
-
-const johnWith = fullName("John");
-const johnDoeWith = johnWith("Doe");
-console.log(johnDoeWith("Smith")); // "John Doe Smith"
 ```
 
 **Benefits of Currying:**
@@ -913,14 +966,14 @@ const getNames = users.map(getName);
 
 ### When to use each paradigm
 
-**Choose OOP when:**
+**OOP**
 - Modeling real-world entities with complex state
 - Building large systems with many developers
 - Working with GUI applications
 - Extending existing OOP frameworks/codebases
 - State management is central to the application
 
-**Choose Functional Programming when:**
+**Functional Programming**
 - Building concurrent/parallel systems
 - Working with data transformations and pipelines
 - Creating mathematical or algorithmic solutions
