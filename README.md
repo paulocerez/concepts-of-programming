@@ -803,8 +803,8 @@ add = lambda a, b: a + b
 ### Function Transformations
 Function transformations are techniques for manipulating and working with functions to create more specialized or complex behavior. These techniques are fundamental to functional programming and enable code reuse, composition, and abstraction.
 
-#### Currying
-Transforming a function that takes multiple arguments into a sequence of functions that each take a single argument. This technique allows for creating specialized functions from more general ones.
+#### Currying, Partial Application
+Transforming a function that takes multiple arguments into a sequence of functions that each take a single argument or fixing a number of arguments to a function, producing another function of smaller arity. These techniques allows for creating specialized functions from more general ones.
 
 ```typescript
 // Normal function with multiple arguments
@@ -878,51 +878,14 @@ Combining two or more functions to create a new function. The output of one func
 // Simple functions to compose
 const double = (x: number) => x * 2;
 const increment = (x: number) => x + 1;
-const square = (x: number) => x * x;
+const multiply = (x: number) => x * 10;
 
-// Manual composition
-const manualCompose = (x: number) => square(increment(double(x)));
-console.log(manualCompose(3)); // (3*2+1)² = (6+1)² = 7² = 49
-
-// Creating a compose function (right to left)
-function compose<T>(...fns: Array<(arg: T) => T>): (arg: T) => T {
-    return (value: T) => fns.reduceRight((acc, fn) => fn(acc), value);
+function compose(...fns: ((x: number) => number)[]): (x: number) => number {
+    return (x: number) => fns.reduce((acc, fn) => fn(acc), x);
 }
 
-// Creating a pipe function (left to right, more readable order)
-function pipe<T>(...fns: Array<(arg: T) => T>): (arg: T) => T {
-    return (value: T) => fns.reduce((acc, fn) => fn(acc), value);
-}
-
-// Using compose (functions applied from right to left)
-const composedFunction = compose(square, increment, double);
-console.log(composedFunction(3)); // 49
-
-// Using pipe (more intuitive, left to right)
-const pipedFunction = pipe(double, increment, square);
-console.log(pipedFunction(3)); // 49
-
-// Real-world example: Processing user data
-interface User {
-    name: string;
-    age: number;
-}
-
-const filterAdults = (users: User[]): User[] => users.filter(user => user.age >= 18);
-const sortByName = (users: User[]): User[] => [...users].sort((a, b) => a.name.localeCompare(b.name));
-const formatNames = (users: User[]): string[] => users.map(user => user.name.toUpperCase());
-
-// Composed processing function
-const processUsers = pipe(filterAdults, sortByName, formatNames);
-
-const users = [
-    { name: "alice", age: 25 },
-    { name: "bob", age: 17 },
-    { name: "charlie", age: 30 },
-    { name: "dave", age: 14 }
-];
-
-console.log(processUsers(users)); // ["ALICE", "CHARLIE"]
+const composedFunction = compose(multiply, increment, double);
+console.log(composedFunction(3)); // 70
 ```
 
 **Benefits of Composition:**
